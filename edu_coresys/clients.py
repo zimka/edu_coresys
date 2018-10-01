@@ -142,8 +142,34 @@ class DpApiClient:
             reason = None
             try:
                 reason = response.json()
-            except:
+            except ValueError:
                 pass
             log.error("Failed to push single_score to dp: {}, {}, {} - {}".format(url, params,payload,reason))
             return False
         return True
+
+
+class InterApiClient:
+
+    def __init__(self, base_url, api_key=None):
+        if base_url is None:
+            base_url = settings.INTER_BASE_URL
+        if api_key is None:
+            api_key = settings.INTER_API_KEY
+        self.base_url = base_url
+        self.api_key = api_key
+        self.inter_single_score_uri = "/api/v0/inter/single_score/"
+
+    def get_user_single_score_tasks(self, unti_id):
+        url = self.base_url + self.inter_single_score_uri
+        params = {"user_uid": unti_id}
+        headers= {'X-Api-Key': self.api_key}
+        response = requests.get(url, params=params, headers=headers)
+        if not response.ok:
+            try:
+                reason = response.json()
+            except ValueError:
+                reason = ''
+            log.error("Failed to get single_score tasks from Inter:{}".format(reason))
+            return []
+        return response.json()
